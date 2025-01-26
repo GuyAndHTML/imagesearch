@@ -13,11 +13,22 @@ if (is_dir($imageFolder)) {
     // Get all files in the folder
     $files = scandir($imageFolder);
 
-    // Loop through the files and check for matches
+    // First, try partial match
     foreach ($files as $file) {
-        // If the file is an image and contains the search query (case-insensitive)
         if (stripos($file, $query) !== false && preg_match('/\.(jpg|jpeg|png|gif)$/i', $file)) {
             $matchingImages[] = $file;
+        }
+    }
+
+    // If no matches found, use fuzzy matching
+    if (empty($matchingImages)) {
+        foreach ($files as $file) {
+            if (preg_match('/\.(jpg|jpeg|png|gif)$/i', $file)) {
+                $distance = levenshtein(strtolower($query), strtolower(pathinfo($file, PATHINFO_FILENAME)));
+                if ($distance <= 3) {
+                    $matchingImages[] = $file;
+                }
+            }
         }
     }
 }
