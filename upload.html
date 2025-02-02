@@ -37,21 +37,8 @@
 </head>
 <body>
     <header>
-        <h1>Image Search</h1>
-        <p>Find images by typing a search term.</p>
+        <h1>UPLOADS</h1>
     </header>
-
-    <main>
-        <form id="searchForm">
-            <label for="searchQuery">Search for an image:</label>
-            <input type="text" id="searchQuery" placeholder="Enter a search term" required>
-            <button type="submit">Search</button>
-        </form>
-
-        <div id="imageResults" class="image-results">
-            <!-- Search results will appear here -->
-        </div>
-    </main>
 
 
 
@@ -60,7 +47,7 @@
             event.preventDefault();
             const query = document.getElementById('searchQuery').value.trim();
             if (query) {
-                // Send the search query to the server using Fetch API
+                //Send the search query to the server using Fetch API
                 fetch('search.php?q=' + encodeURIComponent(query))
                     .then(response => response.json())
                     .then(data => {
@@ -86,8 +73,62 @@
         });
     </script>
 
+<div class="container">
+    <input type="file" accept="image/*" id="imageUpload" class="hidden">
+    <label for="imageUpload" class="button">Select Image</label>
+    <p id="fileName" class="text"></p>
+    <button id="uploadButton" class="button" disabled>Upload</button>
+</div>
 
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const imageInput = document.getElementById("imageUpload");
+        const uploadButton = document.getElementById("uploadButton");
+        const fileNameText = document.getElementById("fileName");
 
+        // Enable upload button when file is selected
+        imageInput.addEventListener("change", function () {
+            if (imageInput.files.length > 0) {
+                fileNameText.textContent = imageInput.files[0].name;
+                uploadButton.disabled = false;
+            }
+        });
+
+        // Upload the file when button is clicked
+        uploadButton.addEventListener("click", async function () {
+            if (!imageInput.files.length) {
+                alert("Please select an image first.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("image", imageInput.files[0]);
+
+            try {
+                const response = await fetch("upload.php", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const result = await response.json();
+                alert(result.message);
+
+                if (result.status === "success") {
+                    fileNameText.textContent = "";
+                    uploadButton.disabled = true;
+                    imageInput.value = "";
+                }
+            } catch (error) {
+                console.error("Error uploading image:", error);
+                alert("Upload failed. Check the console for details.");
+            }
+        });
+    });
+</script>
 
 </body>
 </html>
